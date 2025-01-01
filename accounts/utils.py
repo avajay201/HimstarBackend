@@ -9,7 +9,7 @@ from rest_framework import status
 from .models import Register
 from django.contrib.auth.models import User
 
-CLIENT_ID = "74136365421-al19jp7vrln6gqhuugt2m5ffkmi8qjjf.apps.googleusercontent.com"
+CLIENT_ID = "528751908224-u4d7cuelmvmfsbv6qtsvlhki5ijccqgd.apps.googleusercontent.com"
 
 # Function to generate a 6-digit OTP
 def generate_otp():
