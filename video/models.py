@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from dashboard.models import Competition, Tournament
 from accounts.models import Register
 import uuid
-import boto3
+# import boto3
 from botocore.exceptions import NoCredentialsError
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -22,12 +22,13 @@ AWS_STORAGE_BUCKET_NAME = ''
 AWS_S3_REGION_NAME = ''
 
 # Initialize S3 client
-s3_client = boto3.client(
-    's3',
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-    region_name=AWS_S3_REGION_NAME
-)
+# s3_client = boto3.client(
+#     's3',
+#     aws_access_key_id=AWS_ACCESS_KEY_ID,
+#     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+#     region_name=AWS_S3_REGION_NAME
+# )
+s3_client = None
 
 def generate_video_filename(instance, filename):
     extension = filename.split('.')[-1]

@@ -2,7 +2,7 @@ import os
 from django.db import models
 from django.core.files.storage import default_storage
 from dashboard.models import Category
-import boto3
+# import boto3
 from botocore.exceptions import NoCredentialsError
 
 # AWS S3 configuration
@@ -12,12 +12,13 @@ AWS_STORAGE_BUCKET_NAME = ''
 AWS_S3_REGION_NAME = ''
 
 # Initialize S3 client
-s3_client = boto3.client(
-    's3',
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-    region_name=AWS_S3_REGION_NAME
-)
+# s3_client = boto3.client(
+#     's3',
+#     aws_access_key_id=AWS_ACCESS_KEY_ID,
+#     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+#     region_name=AWS_S3_REGION_NAME
+# )
+s3_client = None
 
 class BannerOrVideo(models.Model):
     BANNER = 'banner'

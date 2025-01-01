@@ -1,4 +1,4 @@
-import boto3
+# import boto3
 from botocore.exceptions import NoCredentialsError
 
 AWS_ACCESS_KEY_ID = ''
@@ -8,13 +8,14 @@ AWS_S3_REGION_NAME = ''
 AWS_S3_ENDPOINT_URL = ''
 
 # Initialize a session using your credentials
-s3_client = boto3.client(
-    's3',
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-    region_name=AWS_S3_REGION_NAME,
-    endpoint_url=AWS_S3_ENDPOINT_URL
-)
+# s3_client = boto3.client(
+#     's3',
+#     aws_access_key_id=AWS_ACCESS_KEY_ID,
+#     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+#     region_name=AWS_S3_REGION_NAME,
+#     endpoint_url=AWS_S3_ENDPOINT_URL
+# )
+s3_client = None
 
 def upload_video_to_s3(video_file_path, s3_key):
     try:
