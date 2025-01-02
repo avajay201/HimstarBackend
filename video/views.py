@@ -234,15 +234,23 @@ class MergeVideoAndMusic(APIView):
             print(f"Failed to delete temporary files: {str(e)}")
 
     def post(self, request):
+        print('request.data>>>', request.data)
         video_file = request.FILES.get('video')
         music_url = request.data.get('music')
+        competition_id = request.data.get('competition_id')
+        print('competition_id>>>', competition_id);
 
-        if not video_file or not music_url:
-            return Response({"error": "Video file and music URL are required."},
+        if not video_file or not music_url or not competition_id:
+            return Response({"error": "Video file, music URL, and competition ID are required."},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        # Save video file temporarily
-       
+        register = Register.objects.filter(user=request.user).first()
+        competition = Competition.objects.filter(id=competition_id).first()
+        if not register or not competition:
+            return Response({"error": "User or competition not found."},
+                            status=status.HTTP_404_NOT_FOUND)
+        participant, _ = Participant.objects.get_or_create(user=register, competition=competition)
+
         # os.makedirs('media', exist_ok=True)
         # os.makedirs('media/temp_videos', exist_ok=True)
         temp_video_dir = os.path.join('media', 'temp_videos')
@@ -283,6 +291,9 @@ class MergeVideoAndMusic(APIView):
             output_path = os.path.join('media', "merged_videos", merged_video_name)
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             final_clip.write_videofile(output_path, codec="libx264")
+
+            participant.temp_video = f"merged_videos/{merged_video_name}"
+            participant.save()
         except Exception as e:
             print(e, '---------')
             return Response({"error": f"Something went wrong, please try again!"},
@@ -301,23 +312,36 @@ class MergeVideoAndMusic(APIView):
                         status=status.HTTP_200_OK)
 
 
-class RemoveMergedVideo(APIView):
+class RemoveTempVideo(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request):
-        file = request.data.get('file')
-        if not file:
-            return Response({"error": "File not found!"},
+        competition_id = request.data.get('competition_id')
+        if not competition_id:
+            return Response({"error": "Competition not found!"},
                             status=status.HTTP_404_NOT_FOUND)
+        register = Register.objects.filter(user=request.user).first()
+        participant = Participant.objects.filter(competition=competition_id, user=register).first()
+        if not participant:
+            return Response({"error": "Participant not found!"},
+                        status=status.HTTP_404_NOT_FOUND)
+        participant.delete()
+        return Response(status=status.HTTP_200_OK)
+class ParticipantTempSave(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        competition_id = request.data.get('competition')
+        video = request.FILES.get('video')
+        if not video or not competition_id:
+            return Response({"error": "Video file and competition ID are required."},
+                            status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            file_path = os.path.join('media', "merged_videos", file)
-            if os.path.exists(file_path):
-                os.remove(file_path)
-                return Response({"message": "File deleted successfully."},
-                                status=status.HTTP_200_OK)
-            else:
-                return Response({"error": "File does not exist."},
-                                status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response({"error": f"Something went wrong, please try again!"},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        register = Register.objects.filter(user=request.user).first()
+        competition = Competition.objects.filter(id=competition_id).first()
+        if not competition:
+            return Response({'detail': 'Competition not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        participant, _ = Participant.objects.get_or_create(competition=competition, user=register)
+
+        participant.temp_video = video
+        participant.save()
+        return Response(status=status.HTTP_200_OK)

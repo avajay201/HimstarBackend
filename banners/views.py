@@ -11,17 +11,9 @@ from rest_framework.permissions import IsAuthenticated
 
 class BannersByCategoryAPIView(APIView):
     permission_classes = [IsAuthenticated]
-    def get(self, request, category_id=None):
+    def get(self, request):
         try:
-            # If category_name is provided, filter by category
-            if category_id:
-                # Get the category object based on the name, with 404 handling
-                category = get_object_or_404(Category, id=category_id)
-                # Filter BannerOrVideo objects by category and media_type as 'banner'
-                banners = BannerOrVideo.objects.filter(category=category, media_type=BannerOrVideo.BANNER)
-            else:
-                # If no category_name is provided, fetch all banners
-                banners = BannerOrVideo.objects.filter(media_type=BannerOrVideo.BANNER)
+            banners = BannerOrVideo.objects.all()
 
             # Serialize the data
             serializer = BannerOrVideoSerializer(banners, many=True)
@@ -30,12 +22,6 @@ class BannersByCategoryAPIView(APIView):
             return Response({
                 'banners': serializer.data
             }, status=status.HTTP_200_OK)
-
-        except Category.DoesNotExist:
-            return Response(
-                {'error': 'Category not found.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
 
         except Exception as e:
             # Generic exception handler for other unexpected errors

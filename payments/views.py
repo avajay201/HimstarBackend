@@ -14,6 +14,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from payments.models import PaymentDetails
+from video.models import Participant
 
 
 
@@ -21,22 +22,28 @@ from payments.models import PaymentDetails
 class PaymentCreateGetAPIView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request):
-        print('request.data>>>>', request.data)
         competition = request.data.get('competition')
-        user = request.user.id
-        print('request.user.id>>>>', request.user.id)
-        # request.data['user'] = request.user.id
+        tournament = request.data.get('tournament')
         serializer = PaymentSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            participate_serializer = ParticipantSerializer(data=request.data)
-            if participate_serializer.is_valid():
-                participate_serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            register = Register.objects.filter(user=request.user).first()
+            if competition:
+                participant = Participant.objects.filter(user=register, competition__id=competition).first()
             else:
-                print(serializer.errors, '111111111111111111111111')
-                Response(participate_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        print(serializer.errors, '222222222222222222222222')
+                participant = Participant.objects.filter(user=register, tournament__id=tournament).first()
+            if not participant:
+                return Response({'message': 'You are not registered for this competition'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            participant.is_paid = True
+            if participant.temp_video:
+                participant.video = participant.temp_video
+                participant.temp_video = None
+            participant.save()
+            payment = PaymentDetails.objects.filter(txnid=request.data.get('txnid'), user=register).first()
+            payment.participant = participant
+            payment.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request):

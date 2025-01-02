@@ -41,6 +41,8 @@ class Participant(models.Model):
     video = models.FileField(upload_to='competition_participants_videos/', blank=True, null=True)
     is_qualified_for_next_round = models.BooleanField(default=False)  # For tracking elimination
     file_uri = models.CharField(max_length=255, blank=True, null=True)
+    temp_video = models.FileField(upload_to='competition_participants_temp_videos/', blank=True, null=True)
+    is_paid = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

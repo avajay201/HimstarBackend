@@ -2,6 +2,7 @@ from django.db import models
 from accounts.models import Register
 from dashboard.models import Tournament, Competition
 # Create your models here.
+from video.models import Participant
 
 
 class Account(models.Model):
@@ -29,6 +30,7 @@ class PaymentDetails(models.Model):
     status = models.CharField(max_length=50)
     cardCategory = models.CharField(max_length=50, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    participant = models.ForeignKey(Participant, on_delete=models.CASCADE, null=True, blank=True)
     competition = models.ForeignKey(Competition, on_delete=models.CASCADE, null=True, blank=True)
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, null=True, blank=True)
     user = models.ForeignKey(Register, on_delete=models.CASCADE)

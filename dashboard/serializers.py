@@ -30,6 +30,8 @@ class CompetitionSerializer(serializers.ModelSerializer):
 
         representation['category'] = instance.category.name if instance.category else None
         representation['is_participated'] = True if is_participated else False
+        if is_participated and is_participated.temp_video:
+            representation['temp_video'] = is_participated.temp_video.url
         representation['stage'] = instance.stage.name if instance.stage else None
         representation['is_close'] = instance.end_date < date.today()
         representation['is_done'] = True if is_participated and (is_participated.file_uri or (is_participated.video and 'media' in is_participated.video.url)) else False
@@ -72,7 +74,7 @@ class TournamentSerializer(serializers.ModelSerializer):
         representation['competition_type'] = 'tournament'
         representation['is_participated'] = True if is_participated else False
         representation['is_close'] = instance.end_date < date.today()
-        representation['is_done'] = True if is_participated and (is_participated.file_uri or (is_participated.video and 'media' in is_participated.video.url)) else False
+        representation['is_done'] = True if is_participated and ((is_participated.file_uri or (is_participated.video and 'media' in is_participated.video.url)) and is_participated.is_paid) else False
         representation['reg_open'] = instance.registration_open_date <= date.today() and instance.registration_close_date >= date.today()
         representation['reg_close'] = instance.registration_close_date < date.today()
         representation['remaining_slots'] = instance.max_participants - participants.count()

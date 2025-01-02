@@ -180,20 +180,31 @@ class CompetitionsByCategoryView(APIView):
     def get(self, request):
         user_id = request.user.id
         category_id = request.GET.get('category_id')
+        # active_competitions = Competition.objects.filter(
+        #     is_active=True,
+        #     start_date__lte=now().date(),
+        #     end_date__gte=now().date(),
+        #     competition_type='competition',
+        # )
+        # upcoming_competitions = Competition.objects.filter(
+        #     is_active=True,
+        #     start_date__gt=now().date(),
+        #     end_date__gt=now().date(),
+        #     # registration_open_date__gt=now().date(),
+        #     # registration_close_date__gt=now().date(),
+        #     competition_type='competition',
+        # )
         active_competitions = Competition.objects.filter(
             is_active=True,
-            start_date__lte=now().date(),
-            end_date__gte=now().date(),
-            competition_type='competition',
-        )
+            registration_open_date__lte=now().date(),
+            registration_close_date__gte=now().date(),
+            competition_type='competition',)
         upcoming_competitions = Competition.objects.filter(
             is_active=True,
             start_date__gt=now().date(),
-            end_date__gt=now().date(),
-            # registration_open_date__gt=now().date(),
-            # registration_close_date__gt=now().date(),
-            competition_type='competition',
-        )
+            registration_open_date__gt=now().date(),
+            competition_type='competition',)
+
         if category_id:
             category = get_object_or_404(Category, id=category_id)
             active_competitions = active_competitions.filter(category=category)
@@ -249,3 +260,14 @@ class LeaderBoard(APIView):
             })
 
         return Response(response_data, status=200)
+
+class ParticularCompetition(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request, id):
+        user_id = request.user.id
+        competition = Competition.objects.filter(id=id).first()
+        if not competition:
+            return Response({'detail': 'Competition not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = CompetitionSerializer(competition, context={'user_id': user_id})
+        return Response(serializer.data, status=status.HTTP_200_OK)

@@ -6,8 +6,8 @@ from .views import (
     CommentCreateAPIView, CommentDetailView,
     FavoriteListCreateView, FavoriteDetailView,
     ShareListCreateView, ShareDetailView,
-    MergeVideoAndMusic, RemoveMergedVideo,
-    PostShuffledListAPIView, LikeListView,ParticipantListCreateView, ParticipantDetailView, UserVideosAPIView
+    MergeVideoAndMusic, RemoveTempVideo,
+    PostShuffledListAPIView, LikeListView,ParticipantListCreateView, ParticipantDetailView, UserVideosAPIView, ParticipantTempSave
 )
 
 urlpatterns = [
@@ -31,6 +31,7 @@ urlpatterns = [
     path('shares/<int:pk>/', ShareDetailView.as_view(), name='share-detail'),
 
     path('merge-video/', MergeVideoAndMusic.as_view(), name='merge_video_and_music'),
-    path('remove-merged-video/', RemoveMergedVideo.as_view(), name='remove_merged_video'),
+    path('remove-temp-video/', RemoveTempVideo.as_view(), name='remove_temp_video'),
+    path('save-temp-participant/', ParticipantTempSave.as_view(), name='save-temp-participant'),
 ]
 
