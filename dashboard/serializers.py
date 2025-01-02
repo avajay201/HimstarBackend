@@ -72,7 +72,10 @@ class TournamentSerializer(serializers.ModelSerializer):
         representation['category'] = instance.category.name
         representation['stage'] = instance.stage.name
         representation['competition_type'] = 'tournament'
+        # representation['is_participated'] = True if is_participated else False
         representation['is_participated'] = True if is_participated else False
+        if is_participated and is_participated.temp_video:
+            representation['temp_video'] = is_participated.temp_video.url
         representation['is_close'] = instance.end_date < date.today()
         representation['is_done'] = True if is_participated and ((is_participated.file_uri or (is_participated.video and 'media' in is_participated.video.url)) and is_participated.is_paid) else False
         representation['reg_open'] = instance.registration_open_date <= date.today() and instance.registration_close_date >= date.today()
