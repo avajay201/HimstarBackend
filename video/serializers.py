@@ -24,6 +24,7 @@ class ParticipantSerializer(serializers.ModelSerializer):
         representation['is_like'] = True if is_like else False
         representation['likes'] = likes
         representation['comments'] = comments
+        representation['video'] = instance.video.url if instance.video else instance.file_uri
         return representation
 
 

@@ -117,11 +117,13 @@ class PostShuffledListAPIView(APIView):
     def get(self, request):
         try:
             # participants_video = Participant.objects.exclude(file_uri__isnull=True).order_by('?')
-            participants_video = Participant.objects.order_by('?')
+            participants_video = Participant.objects.exclude(video="").order_by('?')
+            print('participants_video>>>', participants_video)
             serializer = ParticipantSerializer(participants_video, many=True, context={'user_id': request.user.id})
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as err:
             print('Error:', err)
+            return Response({"detail": "An error occurred while fetching the participants."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class LikeAPIView(APIView):
