@@ -11,5 +11,5 @@ urlpatterns = [
     path('rounds/<int:pk>/', RoundDetailView.as_view(), name='round-detail'),
     path('my-competitions/', MyCompetitions.as_view(), name='my-competitions'),
     path('leaderboard/', LeaderBoard.as_view(), name='leaderboard'),
-    path('competition/<int:id>/', ParticularCompetition.as_view(), name='competition'),
+    path('competition/<int:id>/<comp_type>/', ParticularCompetition.as_view(), name='competition'),
 ]

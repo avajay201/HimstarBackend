@@ -235,6 +235,7 @@ class TournamentsByCategoryView(APIView):
             category = get_object_or_404(Category, id=category_id)
             tournaments = tournaments.filter(category=category)
         serializer = TournamentSerializer(tournaments, many=True, context={'user_id': user_id})
+        print('serializer>>>>', serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class LeaderBoard(APIView):
@@ -263,11 +264,17 @@ class LeaderBoard(APIView):
 
 class ParticularCompetition(APIView):
     permission_classes = [IsAuthenticated]
-    def get(self, request, id):
+    def get(self, request, id, comp_type):
+        print('id>>>>', id, 'comp_type>>>>', comp_type)
         user_id = request.user.id
-        competition = Competition.objects.filter(id=id).first()
-        if not competition:
-            return Response({'detail': 'Competition not found.'}, status=status.HTTP_404_NOT_FOUND)
+        if comp_type == 'competition':
+            competition = Competition.objects.filter(id=id).first()
+            serializer = CompetitionSerializer(competition, context={'user_id': user_id})
+        else:
+            competition = Tournament.objects.filter(id=id).first()
+            serializer = TournamentSerializer(competition, context={'user_id': user_id})
 
-        serializer = CompetitionSerializer(competition, context={'user_id': user_id})
+        # if not competition:
+        #     return Response({'detail': 'Competition not found.'}, status=status.HTTP_404_NOT_FOUND)
+
         return Response(serializer.data, status=status.HTTP_200_OK)
