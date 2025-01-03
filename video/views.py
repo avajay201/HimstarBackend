@@ -6,16 +6,16 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser, FormParser
-from moviepy.editor import VideoFileClip, AudioFileClip
+import platform
+if platform.system() != 'Windows':
+    from moviepy.editor import VideoFileClip, AudioFileClip
+else:
+    from moviepy import VideoFileClip, AudioFileClip
 import requests
 import os
-from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
-from django.conf import settings
 import uuid
 import threading
-import time
 from django.shortcuts import get_object_or_404
 from accounts.models import Register
 from rest_framework.permissions import IsAuthenticated
@@ -249,7 +249,6 @@ class MergeVideoAndMusic(APIView):
         if not register or not competition:
             return Response({"error": "User or competition not found."},
                             status=status.HTTP_404_NOT_FOUND)
-        participant, _ = Participant.objects.get_or_create(user=register, competition=competition)
 
         # os.makedirs('media', exist_ok=True)
         # os.makedirs('media/temp_videos', exist_ok=True)
@@ -282,9 +281,14 @@ class MergeVideoAndMusic(APIView):
                                 status=status.HTTP_400_BAD_REQUEST)
             audio_clip = AudioFileClip(music_path)
             min_duration = min(video_clip.duration, audio_clip.duration)
-            video_clip = video_clip.subclip(0, min_duration)
-            audio_clip = audio_clip.subclip(0, min_duration)
-            final_clip = video_clip.set_audio(audio_clip)
+            if platform.system() == 'Windows':
+                video_clip = video_clip.subclip(0, min_duration)
+                audio_clip = audio_clip.subclip(0, min_duration)
+                final_clip = video_clip.set_audio(audio_clip)
+            else:
+                video_clip = video_clip.subclipped(0, min_duration)
+                audio_clip = audio_clip.subclipped(0, min_duration)
+                final_clip = video_clip.with_audio(audio_clip)
 
             # Save the merged video
             merged_video_name = f"{uuid.uuid4().hex}.mp4"
@@ -292,6 +296,7 @@ class MergeVideoAndMusic(APIView):
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             final_clip.write_videofile(output_path, codec="libx264")
 
+            participant, _ = Participant.objects.get_or_create(user=register, competition=competition)
             participant.temp_video = f"merged_videos/{merged_video_name}"
             participant.save()
         except Exception as e:
