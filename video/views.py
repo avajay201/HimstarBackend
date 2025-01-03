@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 import platform
-if platform.system() != 'Windows':
+if platform.system() == 'Windows':
     from moviepy.editor import VideoFileClip, AudioFileClip
 else:
     from moviepy import VideoFileClip, AudioFileClip
