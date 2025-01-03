@@ -9,6 +9,8 @@ from django.contrib.auth.models import User
 from .utils import verify_google_token
 from rest_framework_simplejwt.tokens import RefreshToken
 from .utils import generate_otp, send_otp
+import requests
+from django.core.files.base import ContentFile
 
 # View to handle registration and sending OTP
 class RegisterView(APIView):
@@ -139,10 +141,21 @@ class GoogleLoginView(APIView):
 
         # Create or update the Register model
         register, created = Register.objects.get_or_create(user=user)
+        
+        # download profile picture
+        if google_data.get('picture'):
+            try:
+                response = requests.get(google_data['picture'])
+                if response.status_code == 200 and created:
+                    file_name = f"{username}_profile.jpg"
+                    register.profile_image.save(file_name, ContentFile(response.content), save=True)
+            except Exception as e:
+                print("Error downloading profile image:", e)
+        
 
-        if created:
-            register.profile_image = google_data.get('picture')  # Save the profile image URL
-            register.save()
+        # if created:
+        #     register.profile_image = google_data.get('picture')  # Save the profile image URL
+        #     register.save()
 
         # Generate access and refresh tokens
         refresh = RefreshToken.for_user(user)
