@@ -116,14 +116,40 @@ class PostShuffledListAPIView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
         try:
-            # participants_video = Participant.objects.exclude(file_uri__isnull=True).order_by('?')
-            participants_video = Participant.objects.exclude(video="").order_by('?')
+            # Get the competition_id or tournament_id from query parameters
+            value = request.query_params.get('value')
+            print(value, '---------------')
+            split_value = value.split('-')
+            if split_value[0] == "COMP":
+                competition_id = int(split_value[1])
+            if split_value[0] == "TOUR":
+                tournament_id = split_value[1]
+            if split_value[0] == "ALL":
+                allvideos = True
+
+            
+            
+            # Filter participants based on competition_id, tournament_id, or get all
+            if split_value[0] == "COMP":
+                participants_video = Participant.objects.filter(competition=competition_id, video__isnull=False).order_by('?')
+            elif split_value[0] == "TOUR":
+                participants_video = Participant.objects.filter(tournament=tournament_id, video__isnull=False).order_by('?')
+            elif split_value[0] == "ALL":
+                participants_video = Participant.objects.exclude(video="").order_by('?')
+            else:
+                return Response({'detail': 'query params not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
             print('participants_video>>>', participants_video)
+
+            # Serialize the filtered participants
             serializer = ParticipantSerializer(participants_video, many=True, context={'user_id': request.user.id})
             return Response(serializer.data, status=status.HTTP_200_OK)
+        
         except Exception as err:
             print('Error:', err)
             return Response({"detail": "An error occurred while fetching the participants."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 class LikeAPIView(APIView):
@@ -238,7 +264,7 @@ class MergeVideoAndMusic(APIView):
         video_file = request.FILES.get('video')
         music_url = request.data.get('music')
         competition_id = request.data.get('competition_id')
-        print('competition_id>>>', competition_id);
+        print('competition_id>>>', competition_id)
 
         if not video_file or not music_url or not competition_id:
             return Response({"error": "Video file, music URL, and competition ID are required."},

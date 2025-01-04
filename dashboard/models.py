@@ -76,6 +76,7 @@ class Competition(models.Model):
     rules = RichTextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    winning_price = models.BigIntegerField()
 
     # parent_tournament = models.ForeignKey(
     #     'self',
@@ -150,6 +151,7 @@ class Tournament(models.Model):
     rules = RichTextField()
     price = models.BigIntegerField()
     is_active = models.BooleanField(default=True)
+    winning_price = models.BigIntegerField()
     # is_online = models.BooleanField(default=False)
     def __str__(self):
         return f"Tournament: {self.name}"
