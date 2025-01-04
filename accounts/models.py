@@ -38,7 +38,7 @@ class OTP(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def is_expired(self):
-        return (datetime.datetime.now(datetime.timezone.utc) - self.created_at).seconds > 3000
+        return (datetime.datetime.now(datetime.timezone.utc) - self.created_at).seconds > 30000
     
 
 class Awards(models.Model):

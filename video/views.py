@@ -116,9 +116,19 @@ class PostShuffledListAPIView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
         try:
-            # participants_video = Participant.objects.exclude(file_uri__isnull=True).order_by('?')
-            participants_video = Participant.objects.exclude(video="").order_by('?')
-            print('participants_video>>>', participants_video)
+            value = request.query_params.get('value')
+            split_value = value.split('-')
+            if split_value[0] == "COMP":
+                competition_id = int(split_value[1])
+                participants_video = Participant.objects.filter(competition=competition_id, video__isnull=False).order_by('?')
+            elif split_value[0] == "TOUR":
+                tournament_id = split_value[1]
+                participants_video = Participant.objects.filter(tournament=tournament_id, video__isnull=False).order_by('?')
+            elif split_value[0] == "ALL":
+                participants_video = Participant.objects.exclude(video="").order_by('?')
+            else:
+                return Response({'detail': 'query params not found'}, status=status.HTTP_404_NOT_FOUND)
+            
             serializer = ParticipantSerializer(participants_video, many=True, context={'user_id': request.user.id})
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as err:
