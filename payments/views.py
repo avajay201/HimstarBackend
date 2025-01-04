@@ -23,18 +23,21 @@ class PaymentCreateGetAPIView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request):
         competition = request.data.get('competition')
-        tournament = request.data.get('tournament')
+        tci = request.data.get('tci')
         serializer = PaymentSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             register = Register.objects.filter(user=request.user).first()
-            if competition:
-                participant = Participant.objects.filter(user=register, competition__id=competition).first()
+            # if competition:
+            if tci:
+                participant = Participant.objects.filter(user=register, competition__id=tci).first()
             else:
-                participant = Participant.objects.filter(user=register, tournament__id=tournament).first()
-            if not participant:
-                return Response({'message': 'You are not registered for this competition'}, status=status.HTTP_400_BAD_REQUEST)
-            
+                participant = Participant.objects.filter(user=register, competition__id=competition).first()
+            # else:
+                # participant = Participant.objects.filter(user=register, tournament__id=tournament).first()
+            # if not participant:
+            #     return Response({'message': 'You are not registered for this competition'}, status=status.HTTP_400_BAD_REQUEST)
+
             participant.is_paid = True
             if participant.temp_video:
                 participant.video = participant.temp_video

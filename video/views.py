@@ -66,14 +66,14 @@ class ParticipantDetailView(APIView):
 
     def patch(self, request):
         competition_id = request.data['competition']
-        video = request.FILES.get('video')
         register = Register.objects.filter(user=request.user).first()
         participant = Participant.objects.filter(competition=competition_id, user=register).first()
         if not participant:
             return Response({'detail': 'Participant not found.'}, status=status.HTTP_404_NOT_FOUND)
-        if video:
-            participant.video = video
-            participant.save()
+        participant.video = participant.temp_video
+        participant.temp_video = None
+        participant.is_paid = True
+        participant.save()
         return Response( status=status.HTTP_200_OK)
 
     def delete(self, request, pk):

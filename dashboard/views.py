@@ -265,7 +265,6 @@ class LeaderBoard(APIView):
 class ParticularCompetition(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, id, comp_type):
-        print('id>>>>', id, 'comp_type>>>>', comp_type)
         user_id = request.user.id
         if comp_type == 'competition':
             competition = Competition.objects.filter(id=id).first()

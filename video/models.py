@@ -36,10 +36,10 @@ def generate_video_filename(instance, filename):
 
 class Participant(models.Model):
     competition = models.ForeignKey(Competition, related_name="participants", on_delete=models.SET_NULL, null=True, blank=True)
-    tournament = models.ForeignKey(Tournament, related_name="tournaments", on_delete=models.SET_NULL, null=True, blank=True)
+    # tournament = models.ForeignKey(Tournament, related_name="tournaments", on_delete=models.SET_NULL, null=True, blank=True)
     user = models.ForeignKey(Register, on_delete=models.CASCADE)
     video = models.FileField(upload_to='competition_participants_videos/', blank=True, null=True)
-    is_qualified_for_next_round = models.BooleanField(default=False)  # For tracking elimination
+    # is_qualified_for_next_round = models.BooleanField(default=False)  # For tracking elimination
     file_uri = models.CharField(max_length=255, blank=True, null=True)
     temp_video = models.FileField(upload_to='competition_participants_temp_videos/', blank=True, null=True)
     is_paid = models.BooleanField(default=False)
