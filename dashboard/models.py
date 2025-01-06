@@ -7,6 +7,7 @@ from ckeditor.fields import RichTextField
 from botocore.exceptions import NoCredentialsError
 import os
 from levels.models import Stage
+import uuid
 
 
 # AWS S3 configuration
@@ -77,6 +78,7 @@ class Competition(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     winning_price = models.BigIntegerField()
+    unique_id = models.CharField(unique=True, editable=False, max_length=12)
 
     # parent_tournament = models.ForeignKey(
     #     'self',
@@ -91,6 +93,11 @@ class Competition(models.Model):
         return self.name
     
     def save(self, *args, **kwargs):
+        if not self.unique_id:
+            unique_id = f"COMP{uuid.uuid4().hex[:8].upper()}"
+            while Competition.objects.filter(unique_id=unique_id).exists():
+                unique_id = f"COMP{uuid.uuid4().hex[:8].upper()}"
+            self.unique_id = unique_id
         super().save(*args, **kwargs)
 
         # Upload the file to S3
@@ -152,11 +159,17 @@ class Tournament(models.Model):
     price = models.BigIntegerField()
     is_active = models.BooleanField(default=True)
     winning_price = models.BigIntegerField()
+    unique_id = models.CharField(unique=True, editable=False, max_length=12)
     # is_online = models.BooleanField(default=False)
     def __str__(self):
         return f"Tournament: {self.name}"
     
     def save(self, *args, **kwargs):
+        if not self.unique_id:
+            unique_id = f"TOUR{uuid.uuid4().hex[:8].upper()}"
+            while Tournament.objects.filter(unique_id=unique_id).exists():
+                unique_id = f"TOUR{uuid.uuid4().hex[:8].upper()}"
+            self.unique_id = unique_id
         super().save(*args, **kwargs)
 
         # Upload the file to S3

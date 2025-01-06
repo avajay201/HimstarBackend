@@ -37,8 +37,16 @@ class RegisterView(APIView):
 class RegisterDetailAPIView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
+        username = request.GET.get('username')
+        if username:
+            register = Register.objects.filter(user__username=username).first()
+        else:    
+            register = Register.objects.filter(user__id=user_id).first()
+
+        if not register:
+            return Response(status=status.HTTP_404_NOT_FOUND)
         user_id = request.user.id
-        register = Register.objects.filter(user__id=user_id).first()
+
         serializer = RegisterSerializer(register)
         return Response(serializer.data, status=status.HTTP_200_OK)
     

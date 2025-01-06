@@ -99,8 +99,12 @@ class UserVideosAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Check if the user exists
-        user = get_object_or_404(Register, user=request.user.id)
+        username = request.GET.get('username')
+
+        if username:
+            user = Register.objects.filter(user__username=username).first()
+        else:
+            user = get_object_or_404(Register, user=request.user.id)
 
         # Fetch all Participant instances for the given user with non-empty video fields
         # participants = Participant.objects.filter(user=user).exclude(file_uri__isnull=True)
@@ -304,7 +308,7 @@ class MergeVideoAndMusic(APIView):
             merged_video_name = f"{uuid.uuid4().hex}.mp4"
             output_path = os.path.join('media', "merged_videos", merged_video_name)
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
-            final_clip.write_videofile(output_path, codec="libx264")
+            final_clip.write_videofile(output_path, codec="libx264", preset='slow',bitrate='1500k', threads=4, ffmpeg_params=["-vf", "setsar=1"])
 
             participant, _ = Participant.objects.get_or_create(user=register, competition=competition)
             participant.temp_video = f"merged_videos/{merged_video_name}"

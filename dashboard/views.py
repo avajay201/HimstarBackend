@@ -216,7 +216,13 @@ class CompetitionsByCategoryView(APIView):
 class MyCompetitions(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
-        register = Register.objects.filter(user=request.user.id).first()
+        username = request.GET.get('username')
+
+        if username:
+            register = Register.objects.filter(user__username=username).first()
+        else:
+            register = Register.objects.filter(user=request.user.id).first()
+
         participants = Participant.objects.filter(user=register).values_list('competition', flat=True)
         competitions = Competition.objects.filter(id__in=participants)
         serializer = CompetitionSerializer(competitions, many=True, context={'user_id': request.user.id})
@@ -265,12 +271,26 @@ class LeaderBoard(APIView):
 class ParticularCompetition(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, id, comp_type):
+        
+
         user_id = request.user.id
-        if comp_type == 'competition':
-            competition = Competition.objects.filter(id=id).first()
+        if comp_type == 'competition' or id.startswith('COMP'):
+            if id.startswith('COMP'):
+                competition = Competition.objects.filter(unique_id=id).first()
+            else:
+                competition = Competition.objects.filter(id=id).first()
+
+            if not competition:
+                return Response(status=status.HTTP_404_NOT_FOUND)
             serializer = CompetitionSerializer(competition, context={'user_id': user_id})
         else:
-            competition = Tournament.objects.filter(id=id).first()
+            if id.startswith('TOUR'):
+                competition = Tournament.objects.filter(unique_id=id).first()
+            else:
+                competition = Tournament.objects.filter(id=id).first()
+
+            if not competition:
+                return Response(status=status.HTTP_404_NOT_FOUND)
             serializer = TournamentSerializer(competition, context={'user_id': user_id})
 
         # if not competition:
