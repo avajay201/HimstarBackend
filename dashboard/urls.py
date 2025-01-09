@@ -1,6 +1,6 @@
 # urls.py
 from django.urls import path
-from .views import CompetitionsByCategoryView, MyCompetitions, TournamentsByCategoryView, CategoryListView,CategoryDetailView, RoundListCreateView, RoundDetailView, EliminateParticipantsView, StartNextRoundView, LeaderBoard, ParticularCompetition
+from .views import CompetitionsByCategoryView, MyCompetitions, TournamentsByCategoryView, CategoryListView,CategoryDetailView, RoundListCreateView, RoundDetailView, EliminateParticipantsView, StartNextRoundView, LeaderBoard, ParticularCompetition, PrizeBreakdownView
 
 urlpatterns = [
     path('categories/', CategoryListView.as_view(), name='category-list'),
@@ -12,4 +12,5 @@ urlpatterns = [
     path('my-competitions/', MyCompetitions.as_view(), name='my-competitions'),
     path('leaderboard/', LeaderBoard.as_view(), name='leaderboard'),
     path('competition/<id>/<comp_type>/', ParticularCompetition.as_view(), name='competition'),
+    path('prize-breakdown/', PrizeBreakdownView.as_view(), name='prize-breakdown'),
 ]

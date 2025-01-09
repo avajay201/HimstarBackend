@@ -1,8 +1,7 @@
 from django.urls import path
-from .views import UserBankDetailView,AllWithdrawalRequestsView,UserWithdrawalRequestsView
+from .views import BankDetailRetrieveUpdateDestroyAPIView, WithdrawalRequestAPIView
 
 urlpatterns = [
-    path('bank-details/', UserBankDetailView.as_view(), name='bank-details'),
-    path('withdrawals/all/', AllWithdrawalRequestsView.as_view(), name='all-withdrawals'),
-    path('withdrawals/', UserWithdrawalRequestsView.as_view(), name='user-withdrawals'),
+    path('bankdetails/', BankDetailRetrieveUpdateDestroyAPIView.as_view(), name='bankdetail-retrieve-update-destroy'),
+    path('withdrawal/', WithdrawalRequestAPIView.as_view(), name='withdrawal-api'),
 ]

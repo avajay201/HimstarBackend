@@ -1,10 +1,12 @@
 # serializers.py
 from rest_framework import serializers
-from .models import Category, Round, Tournament
+from .models import Category, Round, Tournament, CompetitionMedia
 from video.models import Participant
 from payments.models import PaymentDetails
 from datetime import date
 from accounts.models import Register
+from video.models import Like
+from levels.models import Stage
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
@@ -13,7 +15,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 # serializers.py
 from rest_framework import serializers
-from .models import Competition
+from .models import Competition, PrizeBreakdown
 from video.models import Participant
 
 class CompetitionSerializer(serializers.ModelSerializer):
@@ -27,8 +29,18 @@ class CompetitionSerializer(serializers.ModelSerializer):
         register = Register.objects.filter(user=user_id).first()
         is_participated = Participant.objects.filter(competition=instance, user=register).first()
         participants = Participant.objects.filter(competition=instance)
+        videos_id = Participant.objects.filter(user=user_id).values_list('id', flat=True)
+        likes = Like.objects.filter(post__id__in=videos_id).count()
+        print('likes>>>>', likes)
+        representation['total_likes'] = likes
+
+        if instance.stage.likes_required <= likes:
+            representation['can_participate'] = True
+        else:
+            representation['can_participate'] = False
 
         representation['category'] = instance.category.name if instance.category else None
+        representation['rules'] = instance.rules.split('\n') if instance.rules else instance.rules
         representation['is_participated'] = True if is_participated else False
         if is_participated and is_participated.temp_video:
             representation['temp_video'] = is_participated.temp_video.url
@@ -43,6 +55,21 @@ class CompetitionSerializer(serializers.ModelSerializer):
             representation['reg_open'] = None
             representation['reg_close'] = None
         representation['remaining_slots'] = instance.max_participants - participants.count() if instance.max_participants else 0
+
+        media_files = CompetitionMedia.objects.filter(competition=instance)
+        files = []
+        for file in media_files:
+            data = {}
+            data['title'] = file.title
+            if file.media_type == CompetitionMedia.VIDEO:
+                data['url'] = file.video_file.url
+            elif file.media_type == CompetitionMedia.SOUND:
+                data['url'] = file.video_file.url
+            else:
+                data['url'] = file.music_file.url
+            files.append(data)
+
+        representation['media_files'] = files
         return representation
 
 class RoundSerializer(serializers.ModelSerializer):
@@ -101,4 +128,8 @@ class TournamentSerializer(serializers.ModelSerializer):
     #     representation['is_done'] = True if is_participated.file_uri else False
     #     representation['is_live'] = instance.start_date <= date.today()
     #     return representation
-    
+
+class PrizeBreakdownSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PrizeBreakdown
+        fields = '__all__'

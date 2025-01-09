@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
+from django.core.exceptions import ValidationError
 
 import os
 User = get_user_model()
@@ -128,3 +129,7 @@ class Share(models.Model):
 
     def __str__(self):
         return f"{self.user.user.username} shared {self.post} with URL {self.share_url}"
+
+
+
+

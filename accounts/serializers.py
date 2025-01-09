@@ -5,6 +5,7 @@ from .utils import generate_otp, send_otp
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from video.serializers import ParticipantSerializer
+from video.models import Participant, Like
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -69,6 +70,15 @@ class RegisterSerializer(serializers.ModelSerializer):
     def get_eligible_awards(self, obj):
         eligible_awards = Awards.objects.filter(votes_required__lte=obj.votes)
         return AwardsSerializer(eligible_awards, many=True).data
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        user_id = self.context.get('user_id')
+        videos_id = Participant.objects.filter(user=user_id).values_list('id', flat=True)
+        likes = Like.objects.filter(post__id__in=videos_id).count()
+        print('likes>>>>', likes)
+        representation['total_likes'] = likes
+        return representation
     
 
 

@@ -5,8 +5,8 @@ from rest_framework import status
 from rest_framework import generics
 from .models import Category
 from django.shortcuts import get_object_or_404
-from .models import Competition, Category, Round, Tournament, CompetitionMedia
-from .serializers import CategorySerializer,CompetitionSerializer, RoundSerializer, TournamentSerializer
+from .models import Competition, Category, Round, Tournament, CompetitionMedia, PrizeBreakdown
+from .serializers import CategorySerializer,CompetitionSerializer, RoundSerializer, TournamentSerializer, PrizeBreakdownSerializer
 from rest_framework.permissions import IsAuthenticated
 from video.models import Participant
 from django.utils.timezone import now
@@ -208,7 +208,7 @@ class CompetitionsByCategoryView(APIView):
         if category_id:
             category = get_object_or_404(Category, id=category_id)
             active_competitions = active_competitions.filter(category=category)
-            upcoming_competitions = active_competitions.filter(category=category)
+            upcoming_competitions = upcoming_competitions.filter(category=category)
         active_competitions_serializer = CompetitionSerializer(active_competitions, many=True, context={'user_id': user_id})
         upcoming_competitions_serializer = CompetitionSerializer(upcoming_competitions, many=True, context={'user_id': user_id})
         return Response({'active': active_competitions_serializer.data, 'upcoming': upcoming_competitions_serializer.data}, status=status.HTTP_200_OK)
@@ -296,4 +296,35 @@ class ParticularCompetition(APIView):
         # if not competition:
         #     return Response({'detail': 'Competition not found.'}, status=status.HTTP_404_NOT_FOUND)
 
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class PrizeBreakdownView(APIView):
+    def get(self, request):
+        prize_type = request.GET.get('type')
+        entity_id = request.GET.get('id')
+
+        if not prize_type or not entity_id:
+            return Response(
+                {"error": "Type and ID are required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if prize_type not in [PrizeBreakdown.TOURNAMENT.lower(), PrizeBreakdown.COMPETITION.lower()]:
+            return Response(
+                {"error": "Invalid type. Use 'Tournament' or 'Competition'"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        print('8888888888', PrizeBreakdown.COMPETITION, prize_type)
+        if prize_type == PrizeBreakdown.COMPETITION.lower():
+
+            prizebreakdowns = PrizeBreakdown.objects.filter(
+                competition_id=entity_id
+            )
+            print(prizebreakdowns, '---------')
+        else:
+            prizebreakdowns = PrizeBreakdown.objects.filter(
+                tournament_id=entity_id
+            )
+
+        serializer = PrizeBreakdownSerializer(prizebreakdowns, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

@@ -18,7 +18,7 @@ class BankDetail(models.Model):
 class WithdrawalRequest(models.Model):
     STATUS_CHOICES = [
         ('PENDING', 'Pending'),
-        ('APPROVED', 'Approved'),
+        ('PROCESSED', 'Processed'),
         ('REJECTED', 'Rejected'),
     ]
 

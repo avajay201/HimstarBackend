@@ -41,13 +41,12 @@ class RegisterDetailAPIView(APIView):
         if username:
             register = Register.objects.filter(user__username=username).first()
         else:    
-            register = Register.objects.filter(user__id=user_id).first()
+            register = Register.objects.filter(user__id=request.user.id).first()
 
         if not register:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        user_id = request.user.id
 
-        serializer = RegisterSerializer(register)
+        serializer = RegisterSerializer(register, context={'user_id': register.id})
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 

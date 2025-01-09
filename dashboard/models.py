@@ -8,6 +8,7 @@ from botocore.exceptions import NoCredentialsError
 import os
 from levels.models import Stage
 import uuid
+from django.core.exceptions import ValidationError
 
 
 # AWS S3 configuration
@@ -74,7 +75,7 @@ class Competition(models.Model):
     # is_online = models.BooleanField(default=False)
     banner_image = models.ImageField(upload_to='competition_banners/', blank=True, null=True)
     file_uri = models.CharField(max_length=255, blank=True, null=True)
-    rules = RichTextField(blank=True, null=True)
+    rules = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     winning_price = models.BigIntegerField()
@@ -155,7 +156,7 @@ class Tournament(models.Model):
     banner_image = models.ImageField(upload_to='tournament_banners/', blank=True, null=True)
     file_uri = models.CharField(max_length=255, blank=True, null=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    rules = RichTextField()
+    rules = models.TextField(blank=True, null=True)
     price = models.BigIntegerField()
     is_active = models.BooleanField(default=True)
     winning_price = models.BigIntegerField()
@@ -243,7 +244,7 @@ class CompetitionMedia(models.Model):
     video_file = models.FileField(upload_to='competition_videos/', blank=True, null=True)
     sound_file = models.FileField(upload_to='competition_sounds/', blank=True, null=True)
     music_file = models.FileField(upload_to='competition_music/', blank=True, null=True)
-    description = models.TextField(blank=True, null=True)
+    title = models.CharField(max_length=250)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -265,4 +266,44 @@ class CompetitionMedia(models.Model):
 class Winnings(models.Model):
     user = models.ForeignKey(Register, on_delete=models.CASCADE)
     Competition = models.ForeignKey
+
+
+class PrizeBreakdown(models.Model):
+    TOURNAMENT = 'Tournament'
+    COMPETITION = 'Competition'
+
+    TYPE_CHOICES = [
+        (TOURNAMENT, 'tournament'),
+        (COMPETITION, 'competition'),
+    ]
+
+    type = models.CharField(
+        max_length=20,
+        choices=TYPE_CHOICES,
+        default=COMPETITION
+    )
+    competition = models.ForeignKey(
+        'Competition',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+    tournament = models.ForeignKey(
+        'Tournament',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+    position = models.CharField(max_length=255)
+    prize = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def clean(self):
+        if self.type == self.COMPETITION and not self.competition:
+            raise ValidationError({'competition': 'Competition is required when type is Competition.'})
+        if self.type == self.TOURNAMENT and not self.tournament:
+            raise ValidationError({'tournament': 'Tournament is required when type is Tournament.'})
+
+    def __str__(self):
+        return f"{self.position} - {self.prize} ({self.type})"
 

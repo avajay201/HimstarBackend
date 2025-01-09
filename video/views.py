@@ -108,7 +108,7 @@ class UserVideosAPIView(APIView):
 
         # Fetch all Participant instances for the given user with non-empty video fields
         # participants = Participant.objects.filter(user=user).exclude(file_uri__isnull=True)
-        participants = Participant.objects.filter(user=user)
+        participants = Participant.objects.filter(user=user, video__isnull=False).exclude(video="")
         print('participants>>>', participants)
 
         participants_serializer = ParticipantSerializer(participants, many=True, context={'user_id': request.user.id})
