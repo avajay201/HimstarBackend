@@ -88,14 +88,13 @@ class TournamentSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         user_id = self.context.get('user_id')
         register = Register.objects.filter(user=user_id).first()
-
-
         current_competition = instance.competitions.filter(is_active=True).first()
         print('current_competition>>>>', current_competition)
         is_participated = Participant.objects.filter(competition=current_competition, user=register).first()
         participants = Participant.objects.filter(competition=current_competition)
         current_competition_serailzer = CompetitionSerializer(current_competition)
-
+        current_competition_data = current_competition_serailzer.data
+        print(current_competition_data, '--------------------')
         payment = PaymentDetails.objects.filter(user=register, tournament=instance).first()
 
         representation['category'] = instance.category.name
@@ -112,6 +111,31 @@ class TournamentSerializer(serializers.ModelSerializer):
         representation['remaining_slots'] = instance.max_participants - participants.count()
         representation['is_paid'] = True if payment else False
         representation['competition'] = current_competition_serailzer.data
+        representation['rules'] = instance.rules.split('\n') if instance.rules else instance.rules
+
+        media_files = CompetitionMedia.objects.filter(competition=current_competition_data.get('id', None))
+
+        files = []
+        for file in media_files:
+            data = {
+                'title': file.title,
+                'url': None
+            }
+            # Handle file URLs based on media type
+            if file.media_type == CompetitionMedia.VIDEO:
+                data['url'] = file.video_file.url if file.video_file else None
+            elif file.media_type == CompetitionMedia.SOUND:
+                data['url'] = file.sound_file.url if file.sound_file else None
+            else:  # Default to music files
+                data['url'] = file.music_file.url if file.music_file else None
+
+            if data['url']:  # Add only if the URL exists
+                files.append(data)
+
+        representation['media_files'] = files
+        return representation
+
+
         return representation
 
 # class MyCompetitionSerializer(serializers.ModelSerializer):

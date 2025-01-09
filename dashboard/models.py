@@ -147,6 +147,7 @@ class Tournament(models.Model):
     name = models.CharField(max_length=255)
     total_rounds = models.PositiveIntegerField(null=True, blank=True)
     competitions = models.ManyToManyField(Competition, related_name='tournaments')
+    description = models.TextField(null=True, blank=True)
     start_date = models.DateField()
     end_date = models.DateField()
     registration_open_date = models.DateField(null=True, blank=True)
