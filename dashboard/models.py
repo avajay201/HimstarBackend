@@ -78,7 +78,7 @@ class Competition(models.Model):
     rules = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    winning_price = models.BigIntegerField()
+    winning_price = models.CharField(max_length=255, null=True, blank=True)
     unique_id = models.CharField(unique=True, editable=False, max_length=12)
 
     # parent_tournament = models.ForeignKey(
@@ -160,7 +160,7 @@ class Tournament(models.Model):
     rules = models.TextField(blank=True, null=True)
     price = models.BigIntegerField()
     is_active = models.BooleanField(default=True)
-    winning_price = models.BigIntegerField()
+    winning_price = models.CharField(max_length=255, null=True, blank=True)
     unique_id = models.CharField(unique=True, editable=False, max_length=12)
     # is_online = models.BooleanField(default=False)
     def __str__(self):

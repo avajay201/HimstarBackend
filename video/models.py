@@ -78,6 +78,9 @@ class Participant(models.Model):
         except NoCredentialsError:
             print("AWS credentials not available.")
 
+    def __str__(self):
+        return f"{self.user.user.username}"
+
 
 
 

@@ -175,6 +175,37 @@ class StartNextRoundView(APIView):
             return Response({'detail': 'No more rounds left in the tournament.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+class StartedCompetitionsView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        user_id = request.user.id
+        category_id = request.GET.get('category_id')
+
+        # Fetch competitions that have started and not ended yet
+        competitions = Competition.objects.filter(
+            is_active=True,
+            start_date__lte=now(),
+            end_date__gte=now(),
+            competition_type='competition',
+        )
+
+        # If category_id is provided, filter by category
+        if category_id:
+            category = get_object_or_404(Category, id=category_id)
+            competitions = competitions.filter(category=category)
+
+        # Serialize the competitions data
+        competitions_serializer = CompetitionSerializer(
+            competitions, many=True, context={'user_id': user_id}
+        )
+
+        print(competitions_serializer.data, '9999999999999999999999')
+        # Return the response with ongoing competitions
+        return Response({'competitions': competitions_serializer.data}, status=status.HTTP_200_OK)
+
+
+
 class CompetitionsByCategoryView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
@@ -225,7 +256,25 @@ class MyCompetitions(APIView):
 
         participants = Participant.objects.filter(user=register).values_list('competition', flat=True)
         competitions = Competition.objects.filter(id__in=participants)
+        print(competitions, '00000000000000000000000')
         serializer = CompetitionSerializer(competitions, many=True, context={'user_id': request.user.id})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class StartedTournamentsByCategoryView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        user_id = request.user.id
+        category_id = request.GET.get('category_id')
+        tournaments = Tournament.objects.filter(
+            is_active=True,
+            start_date__lte=now(),
+            end_date__gte=now(),
+        )
+        if category_id:
+            category = get_object_or_404(Category, id=category_id)
+            tournaments = tournaments.filter(category=category)
+        serializer = TournamentSerializer(tournaments, many=True, context={'user_id': user_id})
+        print('serializer>>>>', serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class TournamentsByCategoryView(APIView):
@@ -235,7 +284,8 @@ class TournamentsByCategoryView(APIView):
         category_id = request.GET.get('category_id')
         tournaments = Tournament.objects.filter(
             is_active=True,
-            end_date__gte=now().date(),
+            registration_open_date__lte=now().date(),
+            registration_close_date__gte=now().date(),
         )
         if category_id:
             category = get_object_or_404(Category, id=category_id)
@@ -271,11 +321,12 @@ class LeaderBoard(APIView):
 class ParticularCompetition(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request, id, comp_type):
-        
 
         user_id = request.user.id
+        print(user_id, id , comp_type, '9999999999999999999999')
         if comp_type == 'competition' or id.startswith('COMP'):
             if id.startswith('COMP'):
+                print("444444444444444444")
                 competition = Competition.objects.filter(unique_id=id).first()
             else:
                 competition = Competition.objects.filter(id=id).first()
@@ -284,17 +335,19 @@ class ParticularCompetition(APIView):
                 return Response(status=status.HTTP_404_NOT_FOUND)
             serializer = CompetitionSerializer(competition, context={'user_id': user_id})
         else:
+
             if id.startswith('TOUR'):
                 competition = Tournament.objects.filter(unique_id=id).first()
             else:
+                tournaments_with_competition = Tournament.objects.filter(competitions__id=id).first()
                 competition = Tournament.objects.filter(id=id).first()
 
             if not competition:
                 return Response(status=status.HTTP_404_NOT_FOUND)
             serializer = TournamentSerializer(competition, context={'user_id': user_id})
 
-        # if not competition:
-        #     return Response({'detail': 'Competition not found.'}, status=status.HTTP_404_NOT_FOUND)
+        if not competition:
+            return Response({'detail': 'Competition not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 

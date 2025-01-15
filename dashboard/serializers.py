@@ -89,14 +89,11 @@ class TournamentSerializer(serializers.ModelSerializer):
         user_id = self.context.get('user_id')
         register = Register.objects.filter(user=user_id).first()
         current_competition = instance.competitions.filter(is_active=True).first()
-        print('current_competition>>>>', current_competition)
         is_participated = Participant.objects.filter(competition=current_competition, user=register).first()
         participants = Participant.objects.filter(competition=current_competition)
         current_competition_serailzer = CompetitionSerializer(current_competition)
         current_competition_data = current_competition_serailzer.data
-        print(current_competition_data, '--------------------')
         payment = PaymentDetails.objects.filter(user=register, tournament=instance).first()
-
         representation['category'] = instance.category.name
         # representation['stage'] = instance.stage.name
         representation['competition_type'] = 'tournament'
@@ -112,7 +109,6 @@ class TournamentSerializer(serializers.ModelSerializer):
         representation['is_paid'] = True if payment else False
         representation['competition'] = current_competition_serailzer.data
         representation['rules'] = instance.rules.split('\n') if instance.rules else instance.rules
-
         media_files = CompetitionMedia.objects.filter(competition=current_competition_data.get('id', None))
 
         files = []

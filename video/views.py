@@ -12,6 +12,7 @@ if platform.system() == 'Windows':
 else:
     from moviepy import VideoFileClip, AudioFileClip
 import requests
+from datetime import date
 import os
 from django.core.files.storage import default_storage
 import uuid
@@ -21,7 +22,7 @@ from accounts.models import Register
 from rest_framework.permissions import IsAuthenticated
 from dashboard.models import Competition
 
-
+today = date.today()
 class ParticipantListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -124,16 +125,28 @@ class PostShuffledListAPIView(APIView):
             split_value = value.split('-')
             if split_value[0] == "COMP":
                 competition_id = int(split_value[1])
-                participants_video = Participant.objects.filter(competition=competition_id, video__isnull=False).order_by('?')
+                participants_video = Participant.objects.filter(competition=competition_id,competition__start_date__lte=today,competition__end_date__gte=today).exclude(video__isnull=True).exclude(video__exact=''.order_by('?'))
             elif split_value[0] == "TOUR":
                 tournament_id = split_value[1]
-                participants_video = Participant.objects.filter(tournament=tournament_id, video__isnull=False).order_by('?')
+                participants_video = Participant.objects.filter(tournament=tournament_id,competition__start_date__lte=today,competition__end_date__gte=today).exclude(video__isnull=True).exclude(video__exact=''.order_by('?'))
             elif split_value[0] == "ALL":
-                participants_video = Participant.objects.exclude(video="").order_by('?')
+                participants_video = Participant.objects.filter(
+                    competition__isnull=False,
+                    competition__start_date__lte=today,
+                    competition__end_date__gte=today
+                ).exclude(
+                    video__isnull=True
+                ).exclude(
+                    video__exact=''
+                ).order_by('?')
+
+
+
             else:
                 return Response({'detail': 'query params not found'}, status=status.HTTP_404_NOT_FOUND)
-            
+
             serializer = ParticipantSerializer(participants_video, many=True, context={'user_id': request.user.id})
+            print(serializer.data, '---------------------------')
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as err:
             print('Error:', err)
