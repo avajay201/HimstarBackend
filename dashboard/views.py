@@ -227,13 +227,13 @@ class CompetitionsByCategoryView(APIView):
         # )
         active_competitions = Competition.objects.filter(
             is_active=True,
-            registration_open_date__lte=now().date(),
-            registration_close_date__gte=now().date(),
+            registration_open_date__lte=now(),
+            registration_close_date__gte=now(),
             competition_type='competition',)
         upcoming_competitions = Competition.objects.filter(
             is_active=True,
-            start_date__gt=now().date(),
-            registration_open_date__gt=now().date(),
+            start_date__gt=now(),
+            registration_open_date__gt=now(),
             competition_type='competition',)
 
         if category_id:
